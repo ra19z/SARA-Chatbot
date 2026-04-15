@@ -68,7 +68,7 @@ def chat():
                 'timestamp': datetime.now().isoformat()
             })
 
-                # STEP 2: Use Ollama if not in KB
+        # STEP 2: Use Ollama if not in KB
         else:
             print('⚠️  NOT IN KB - CALLING OLLAMA AI')
             try:
@@ -105,7 +105,13 @@ def chat():
                     'reply': f'❌ Tidak bisa connect ke Ollama: {str(e)}',
                     'source': 'error'
                 }), 503
-
+    
+    except Exception as e:  # ← TAMBAHKAN INI!
+        print(f'❌ UNEXPECTED ERROR: {str(e)}')
+        return jsonify({
+            'reply': f'❌ Error tidak terduga: {str(e)}',
+            'source': 'error'
+        }), 500
 if __name__ == '__main__':
     print('\n' + '='*70)
     print('🚀 SARA_BOT FLASK SERVER STARTED')
