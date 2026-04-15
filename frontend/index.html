@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 SARA</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="header-left">
+                <div class="header-icon">🤖</div>
+                <div class="header-text">
+                    <h1>SARA</h1>
+                    <p class="subtitle">PT Samaratu Daya Teknik</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <span class="status-badge online">
+                    <span class="status-dot"></span>
+                    Online
+                </span>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-wrapper" id="chatMessages">
+            <!-- Messages akan di-insert di sini -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-wrapper">
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    class="message-input" 
+                    placeholder="Ketik pertanyaan..."
+                    autocomplete="off"
+                >
+                <button id="sendButton" class="send-btn" aria-label="Kirim pesan">
+                    ➤
+                </button>
+            </div>
+            <div class="input-hint">💡 Tanya tentang onboarding, benefit, jam kerja, dll</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
