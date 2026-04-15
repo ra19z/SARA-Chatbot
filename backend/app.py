@@ -69,47 +69,16 @@ def chat():
             })
 
         # STEP 2: Use Ollama if not in KB
-        print('⚠️  NOT IN KB - CALLING OLLAMA AI')
-        print('⏳ Processing with AI model (llama3)...')
+        else:
+            # Tidak ada di KB dan no Ollama in production
+            print('❌ NOT IN KB - NO OLLAMA IN PRODUCTION')
+            print(f'{"="*70}\n')
+            return jsonify({
+                'reply': '❓ Pertanyaan Anda tidak ada di Knowledge Base saya.\n\nSilakan hubungi HR untuk bantuan lebih lanjut:\n📧 Email: hr@samaratu.com\n📞 Phone: (021) 1234-5678\n\n💡 Coba tanya tentang: onboarding, jam kerja, benefit, gaji, cuti, fasilitas, lokasi, atau hr contact',
+                'source': 'kb',
+                'timestamp': datetime.now().isoformat()
+            }), 404
         
-        try:
-            response = requests.post(OLLAMA_URL, json={
-                'model': 'llama3',
-                'prompt': user_message,
-                'stream': False,
-                'temperature': 0.7
-            }, timeout=180)
-
-            if response.status_code == 200:
-                reply = response.json()['response'].strip()
-                print('✅ OLLAMA RESPONSE RECEIVED')
-                print(f'📝 ANSWER: {reply[:100]}...')
-                print(f'{"="*70}\n')
-                return jsonify({
-                    'reply': reply,
-                    'source': 'ollama',
-                    'timestamp': datetime.now().isoformat()
-                })
-            else:
-                print(f'❌ OLLAMA ERROR: {response.status_code}')
-                return jsonify({
-                    'error': 'Ollama error',
-                    'details': response.text
-                }), 500
-
-        except requests.exceptions.ConnectionError:
-            print('❌ CONNECTION ERROR: Ollama tidak berjalan')
-            print(f'{"="*70}\n')
-            return jsonify({
-                'error': 'Ollama tidak berjalan. Pastikan sudah jalankan: ollama serve'
-            }), 503
-        except requests.exceptions.Timeout:
-            print('❌ TIMEOUT: Ollama response timeout')
-            print(f'{"="*70}\n')
-            return jsonify({
-                'error': 'Request timeout. Coba lagi dalam beberapa saat.'
-            }), 504
-
     except Exception as error:
         print(f'❌ UNEXPECTED ERROR: {str(error)}')
         print(f'{"="*70}\n')
