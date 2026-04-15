@@ -96,4 +96,7 @@ if __name__ == '__main__':
     print(f'📁 Knowledge:   Loaded')
     print(f'⏰ Started at:   {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     print('='*70 + '\n')
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    # Production mode - disable debug
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=debug_mode, port=port, host='0.0.0.0')
