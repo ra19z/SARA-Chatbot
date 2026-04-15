@@ -329,61 +329,79 @@ body {
 }
 
 /* ===== RESPONSIVE ===== */
+/* Mobile Responsive */
 @media (max-width: 768px) {
-    .message-bubble {
-        max-width: 80%;
-        font-size: 13px;
-        padding: 10px 14px;
+    body {
+        padding: 10px;
     }
-
-    .chat-header {
-        padding: 12px 16px;
+    
+    .container {
+        max-width: 100%;
+        padding: 10px;
+        height: 100vh;
     }
-
-    .header-icon {
-        font-size: 28px;
+    
+    #chatbox {
+        height: 70vh;
+        border-radius: 8px;
     }
-
-    .header-text h1 {
-        font-size: 18px;
+    
+    .message {
+        max-width: 95%;
+        padding: 8px 12px;
+        font-size: 14px;
+        margin: 5px 0;
     }
-
-    .messages-wrapper {
-        padding: 16px;
+    
+    .user-message {
+        margin-left: auto;
+    }
+    
+    .bot-message {
+        margin-right: auto;
+    }
+    
+    #messageInput {
+        padding: 12px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+    
+    button {
+        padding: 10px 15px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+    
+    h1 {
+        font-size: 20px;
+        margin: 10px 0;
+    }
+    
+    /* Kurangi padding container */
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
         gap: 10px;
-    }
-
-    .send-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-
-    .message-input {
-        padding: 10px 14px;
-        font-size: 13px;
     }
 }
 
+/* Ultra small screens */
 @media (max-width: 480px) {
-    .message-bubble {
-        max-width: 85%;
+    #chatbox {
+        height: 60vh;
+        font-size: 12px;
     }
-
-    .header-text h1 {
-        font-size: 16px;
+    
+    .message {
+        font-size: 12px;
+        padding: 6px 10px;
     }
-
-    .header-text .subtitle {
-        font-size: 11px;
-    }
-
-    .input-hint {
-        display: none;
-    }
-
-    .messages-wrapper {
-        padding: 12px;
+    
+    button {
+        font-size: 12px;
+        padding: 8px 12px;
     }
 }
 /* ===== LOCATION BUBBLE ===== */

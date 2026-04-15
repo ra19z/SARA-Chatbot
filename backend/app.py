@@ -68,23 +68,43 @@ def chat():
                 'timestamp': datetime.now().isoformat()
             })
 
-        # STEP 2: Use Ollama if not in KB
+                # STEP 2: Use Ollama if not in KB
         else:
-            # Tidak ada di KB dan no Ollama in production
-            print('❌ NOT IN KB - NO OLLAMA IN PRODUCTION')
-            print(f'{"="*70}\n')
-            return jsonify({
-                'reply': '❓ Pertanyaan Anda tidak ada di Knowledge Base saya.\n\nSilakan hubungi HR untuk bantuan lebih lanjut:\n📧 Email: hr@samaratu.com\n📞 Phone: (021) 1234-5678\n\n💡 Coba tanya tentang: onboarding, jam kerja, benefit, gaji, cuti, fasilitas, lokasi, atau hr contact',
-                'source': 'kb',
-                'timestamp': datetime.now().isoformat()
-            }), 404
-        
-    except Exception as error:
-        print(f'❌ UNEXPECTED ERROR: {str(error)}')
-        print(f'{"="*70}\n')
-        return jsonify({
-            'error': f'Error: {str(error)}'
-        }), 500
+            print('⚠️  NOT IN KB - CALLING OLLAMA AI')
+            try:
+                response = requests.post(
+                    OLLAMA_URL,
+                    json={
+                        'model': 'llama3',
+                        'prompt': user_message,
+                        'stream': False,
+                        'temperature': 0.7
+                    },
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    ai_answer = response.json().get('response', 'Tidak bisa jawab')
+                    print(f'🤖 AI ANSWER: {str(ai_answer)[:100]}...')
+                    print(f'{"="*70}\n')
+                    return jsonify({
+                        'reply': ai_answer,
+                        'source': 'ollama',
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    print(f'❌ OLLAMA ERROR: {response.status_code}')
+                    return jsonify({
+                        'reply': '❌ Ollama API tidak tersedia. Silakan hubungi IT.',
+                        'source': 'error'
+                    }), 503
+                    
+            except requests.exceptions.RequestException as e:
+                print(f'❌ OLLAMA CONNECTION ERROR: {str(e)}')
+                return jsonify({
+                    'reply': f'❌ Tidak bisa connect ke Ollama: {str(e)}',
+                    'source': 'error'
+                }), 503
 
 if __name__ == '__main__':
     print('\n' + '='*70)
