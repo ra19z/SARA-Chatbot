@@ -1,12 +1,7 @@
-FROM python:3.11-slim
+FROM ollama/ollama:latest
 
-WORKDIR /app
+ENV OLLAMA_HOST=0.0.0.0:11434
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+EXPOSE 11434
 
-COPY . .
-
-EXPOSE 5000
-
-CMD ["python", "app.py"]
+CMD ["ollama", "serve"]
