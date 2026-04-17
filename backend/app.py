@@ -13,7 +13,7 @@ else:
 
 CORS(app)
 
-OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
+OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://ollama:11434/api/generate')
 OLLAMA_ENABLED = os.environ.get('OLLAMA_ENABLED', 'true').lower() == 'true'
 
 @app.route('/')
