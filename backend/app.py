@@ -5,36 +5,66 @@ import os
 from knowledge import find_answer
 from datetime import datetime
 
-app = Flask(__name__, template_folder='../frontend', static_folder='../frontend')
+# Initialize Flask app dengan kondisi yang benar
+if os.path.exists('../frontend'):
+    app = Flask(__name__, template_folder='../frontend', static_folder='../frontend')
+else:
+    app = Flask(__name__)
+
 CORS(app)
 
-OLLAMA_URL = 'http://localhost:11434/api/generate'
+OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
+OLLAMA_ENABLED = os.environ.get('OLLAMA_ENABLED', 'true').lower() == 'true'
 
 @app.route('/')
 def index():
-    return send_from_directory('../frontend', 'index.html')
+    try:
+        return send_from_directory('../frontend', 'index.html')
+    except:
+        return jsonify({'error': 'Frontend not found'}), 404
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    return send_from_directory('../frontend', filename)
+    try:
+        return send_from_directory('../frontend', filename)
+    except:
+        return jsonify({'error': 'File not found'}), 404
 
 @app.route('/api/test', methods=['GET'])
 def test():
     return jsonify({
         'message': 'Flask Server OK',
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
+        'ollama_enabled': OLLAMA_ENABLED,
+        'ollama_url': OLLAMA_URL if OLLAMA_ENABLED else 'disabled'
     })
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
     try:
-        user_message = request.json.get('message', '').strip()
-        
+        # DEBUG: Print raw request info
         print(f'\n{"="*70}')
+        print(f'📥 Raw Request:')
+        print(f'   Content-Type: {request.content_type}')
+        print(f'   Data: {request.data[:200] if request.data else "EMPTY"}')
+        
+        # Parse message dengan error handling lebih baik
+        try:
+            json_data = request.get_json(force=True, silent=False)
+            if json_data is None:
+                print('❌ JSON data is None!')
+                return jsonify({'error': 'Invalid JSON format'}), 400
+            
+            user_message = json_data.get('message', '').strip()
+        except Exception as e:
+            print(f'❌ JSON Parse Error: {str(e)}')
+            return jsonify({'error': f'Invalid JSON: {str(e)}'}), 400
+        
         print(f'⏰ TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
         print(f'👤 USER: {user_message}')
         
         if not user_message:
+            print('⚠️  User message is empty')
             return jsonify({'error': 'Pesan kosong'}), 400
 
         # STEP 1: Check Knowledge Base first
@@ -68,10 +98,18 @@ def chat():
                 'timestamp': datetime.now().isoformat()
             })
 
-        # STEP 2: Use Ollama if not in KB
+        # STEP 2: Use Ollama if not in KB (dan Ollama enabled)
         else:
+            if not OLLAMA_ENABLED:
+                print('⚠️  NOT IN KB - OLLAMA DISABLED')
+                return jsonify({
+                    'reply': '❌ Pertanyaan tidak ada di Knowledge Base dan Ollama disabled.',
+                    'source': 'kb_only'
+                }), 200
+            
             print('⚠️  NOT IN KB - CALLING OLLAMA AI')
             try:
+                print(f'📡 Connecting to Ollama: {OLLAMA_URL}')
                 response = requests.post(
                     OLLAMA_URL,
                     json={
@@ -80,7 +118,7 @@ def chat():
                         'stream': False,
                         'temperature': 0.7
                     },
-                    timeout=30
+                    timeout=60
                 )
                 
                 if response.status_code == 200:
@@ -95,34 +133,52 @@ def chat():
                 else:
                     print(f'❌ OLLAMA ERROR: {response.status_code}')
                     return jsonify({
-                        'reply': '❌ Ollama API tidak tersedia. Silakan hubungi IT.',
+                        'reply': f'❌ Ollama error: Status {response.status_code}',
                         'source': 'error'
-                    }), 503
+                    }), 200
                     
-            except requests.exceptions.RequestException as e:
-                print(f'❌ OLLAMA CONNECTION ERROR: {str(e)}')
+            except requests.exceptions.Timeout:
+                print(f'⏱️  OLLAMA TIMEOUT')
                 return jsonify({
-                    'reply': f'❌ Tidak bisa connect ke Ollama: {str(e)}',
+                    'reply': '⏱️ Ollama sedang loading... (timeout). Silakan coba lagi.',
+                    'source': 'timeout'
+                }), 200
+                
+            except requests.exceptions.ConnectionError:
+                print(f'🔌 OLLAMA CONNECTION ERROR')
+                return jsonify({
+                    'reply': '🔌 Tidak bisa connect ke Ollama. Pastikan service berjalan.',
+                    'source': 'connection_error'
+                }), 200
+                
+            except Exception as e:
+                print(f'❌ OLLAMA ERROR: {str(e)}')
+                return jsonify({
+                    'reply': f'❌ Ollama Error: {str(e)}',
                     'source': 'error'
-                }), 503
+                }), 200
     
-    except Exception as e:  # ← TAMBAHKAN INI!
+    except Exception as e:
         print(f'❌ UNEXPECTED ERROR: {str(e)}')
+        import traceback
+        traceback.print_exc()
         return jsonify({
-            'reply': f'❌ Error tidak terduga: {str(e)}',
+            'reply': f'❌ Error: {str(e)}',
             'source': 'error'
         }), 500
+
 if __name__ == '__main__':
     print('\n' + '='*70)
     print('🚀 SARA_BOT FLASK SERVER STARTED')
     print('='*70)
     print(f'✅ Backend:     http://localhost:5000')
-    print(f'📡 Ollama API:  http://localhost:11434')
+    print(f'📡 Ollama:      {"ENABLED" if OLLAMA_ENABLED else "DISABLED"}')
+    if OLLAMA_ENABLED:
+        print(f'📍 Ollama URL:  {OLLAMA_URL}')
     print(f'🤖 Model:       llama3')
     print(f'📁 Knowledge:   Loaded')
     print(f'⏰ Started at:   {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     print('='*70 + '\n')
-    # Production mode - disable debug
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=debug_mode, port=port, host='0.0.0.0')

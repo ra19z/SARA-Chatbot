@@ -1,3 +1,4 @@
+from difflib import SequenceMatcher
 knowledge_base = {
     'onboarding': {
         'keywords': ['onboarding', 'orientasi', 'pengenalan', 'baru', 'join', 'mulai kerja'],
@@ -86,15 +87,22 @@ knowledge_base = {
 
 def find_answer(user_message):
     """
-    Cari jawaban dari knowledge base dengan matching yang lebih akurat
+    Cari jawaban dengan fuzzy matching yang lebih baik
     """
     msg = user_message.lower().strip()
+    best_match = None
+    best_score = 0.6  # threshold minimum 60% similarity
     
-    # Exact phrase matching dulu (lebih prioritas)
     for key, item in knowledge_base.items():
         for keyword in item['keywords']:
-            # Check apakah keyword ada di message
+            # Exact match (prioritas tinggi)
             if keyword.lower() in msg:
                 return item
+            
+            # Fuzzy matching untuk pertanyaan serupa
+            similarity = SequenceMatcher(None, keyword.lower(), msg).ratio()
+            if similarity > best_score:
+                best_score = similarity
+                best_match = item
     
-    return None
+    return best_match
